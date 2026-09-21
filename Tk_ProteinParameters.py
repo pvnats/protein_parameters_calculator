@@ -32,110 +32,140 @@ amino_acids_dict = {
 }
 
 
-def make_sequence(my_sequence):  # Making the sequence list of the analyzing protein
+class Protein:
+    def __init__(self):
+        self.sequence = None
+        self.aa_number = None
+        self.aa_dict = None
+        self.atom_dict = None
+        self.mol_weight = None
+        self.ext_coef = None
+        self.pI = None
+        
+    def print_info(self):
+        
+        # Print sequence
+        result_text.insert("end", f"Your sequence:\n")
+        chunked_list = [self.sequence[i:i + 10] for i in range(0, len(self.sequence), 10)]
+        counter = 0
+        for i in range(0, len(chunked_list), 5):  # Chunked sequence printing
+            for chunk in chunked_list[i:i + 5]:
+                counter += len(chunk)
+                result_text.insert("end", f"{''.join(chunk)} ")
+            result_text.insert("end", f' {counter}\n')
+            
+        # Print amino acid composition
+        result_text.insert("end", f"\nAmino acid composition: \n")
+        for key, value in sorted(self.aa_dict.items()):
+                result_text.insert(
+                    "end",
+                    f"{amino_acids_dict[key][0]} ({key}) = {value}\t"
+                    f"\t{100 * value / self.aa_number:.1f}% \n",
+                )
+        result_text.insert("end", f"\nNumber of amino acids: {self.aa_number}\n")
+        
+        # Print atomic composition
+        result_text.insert("end", f"\nAtomic composition:")
+        result_text.insert(
+            "end",
+            f"\nCarbon  \tC\t{self.atom_dict['C']}"
+            f"\nHydrogen\tH\t{self.atom_dict['H'] + 2}"
+            f"\nNitrogen\tN\t{self.atom_dict['N']}"
+            f"\nOxygen  \tO\t{self.atom_dict['O'] + 1}"
+            f"\nSulfur  \tS\t{self.atom_dict['S']}\n",
+            )
+        
+        result_text.insert(
+            "end", f"\nFormula: C{self.atom_dict['C']}H{self.atom_dict['H'] + 2}N{self.atom_dict['N']}O{self.atom_dict['O'] + 1}S{self.atom_dict['S']}\n"
+            )
+        result_text.insert(
+             "end",
+            f"Total number of atoms: {self.atom_dict['C'] + self.atom_dict['H'] + self.atom_dict['N'] + self.atom_dict['O'] + self.atom_dict['S'] + 3}\n",
+            )
+        
+        # Print molecular weight
+        result_text.insert("end", f"\nMolecular weight: {self.mol_weight:.2f}\n")
+        
+        # Print extinction coefficients
+        result_text.insert(
+            "end", 
+            f"\nExt. coefficient (M-1 cm-1): {self.ext_coef['ext_coef_cformed']}\n")
+        result_text.insert(
+            "end",
+            f"Abs (0.1%): {self.ext_coef['abs_cformed']:.3f}, assuming all pairs of Cys residues form cystines\n",
+            )
+        result_text.insert(
+            "end", 
+            f"\nExt. coefficient (M-1 cm-1): {self.ext_coef['ext_coef_reduced']}\n"
+            )
+        result_text.insert(
+            "end", 
+            f"Abs (0.1%): {self.ext_coef['abs_reduced']:.3f}, assuming all Cys residues are reduced\n"
+            )
+        
+        # Print pI
+        result_text.insert("end", f"\nTheoretical pI: {self.pI:.2f}\n\n") 
+        
+def make_sequence(sequence):  # Making the sequence list of the analyzing protein
     sequence_list = []
-    for s in my_sequence:
+    for s in sequence:
         if s.upper() in amino_acids_dict.keys():
             sequence_list.append(s.upper())
-            
-    result_text.insert("end", f"Your sequence:\n")
-    
-    # Sequence chunking        
-    chunked_list = [sequence_list[i:i + 10] for i in range(0, len(sequence_list), 10)]
-    counter = 0
-    for i in range(0, len(chunked_list), 5):  # Chunked sequence printing
-        for chunk in chunked_list[i:i + 5]:
-            counter += len(chunk)
-            result_text.insert("end", f"{''.join(chunk)} ")
-        result_text.insert("end", f' {counter}\n')
+        
     return sequence_list
 
 def count_aa(sequence_list):  # Amino acids counting
-    total_aa_number = len(sequence_list)
-
     temp_aa_dict = {}
     for aa in sequence_list:
         temp_aa_dict[aa] = temp_aa_dict.get(aa, 0) + 1
 
-    result_text.insert("end", f"\nAmino acid composition: \n")
-
-    for key, value in sorted(temp_aa_dict.items()):
-        result_text.insert(
-            "end",
-            f"{amino_acids_dict[key][0]} ({key}) = {value}\t"
-            f"\t{100 * value / total_aa_number:.1f}% \n",
-        )
-
-    result_text.insert("end", f"\nNumber of amino acids: {total_aa_number}\n")
     return temp_aa_dict
 
-
-def count_aa_atoms(my_sequence_dict):  # Amino acid composition calculation
+def count_atoms(aa_dict):  # Atomic composition calculation
     atom_c, atom_h, atom_n, atom_o, atom_s = 0, 0, 0, 0, 0
 
-    for key, value in my_sequence_dict.items():
+    for key, value in aa_dict.items():
         atom_c += amino_acids_dict[key][2] * value
         atom_h += amino_acids_dict[key][3] * value
         atom_n += amino_acids_dict[key][4] * value
         atom_o += amino_acids_dict[key][5] * value
         atom_s += amino_acids_dict[key][6] * value
+        
+    atom_dict = dict((("C", atom_c), ("H", atom_h), ("N", atom_n), ("O", atom_o), ("S", atom_s)))
+    
+    return atom_dict
 
-    result_text.insert("end", f"\nAtomic composition:")
-    result_text.insert(
-        "end",
-        f"\nCarbon  \tC\t{atom_c}"
-        f"\nHydrogen\tH\t{atom_h + 2}"
-        f"\nNitrogen\tN\t{atom_n}"
-        f"\nOxygen  \tO\t{atom_o + 1}"
-        f"\nSulfur  \tS\t{atom_s}\n",
-    )
-
-    result_text.insert(
-        "end", f"\nFormula: C{atom_c}H{atom_h + 2}N{atom_n}O{atom_o + 1}S{atom_s}\n"
-    )
-    result_text.insert(
-        "end",
-        f"Total number of atoms: {atom_c + atom_h + atom_n + atom_o + atom_s + 3}\n",
-    )
-
-
-def calculate_mol_weight(my_sequence_dict):  # Molecular weight calculation
+def calculate_mol_weight(aa_dict):  # Molecular weight calculation
     water_weight = 18.0153
     mol_weight = 0
 
-    for key, value in my_sequence_dict.items():
+    for key, value in aa_dict.items():
         mol_weight += (amino_acids_dict[key][1] - water_weight) * value
-    result_text.insert("end", f"\nMolecular weight: {mol_weight + water_weight:.2f}\n")
-    return mol_weight
+    mol_weight += water_weight
+    
+    return mol_weight    
 
-
-def calculate_ext_coef(
-    my_sequence_dict, mol_weight
-):  # Extinction coefficients calculation
+def calculate_ext_coef(aa_dict, mol_weight):  # Extinction coefficients calculation
     ext_coef_cformed = (
-        my_sequence_dict.get("Y", 0) * 1490
-        + my_sequence_dict.get("W", 0) * 5500
-        + my_sequence_dict.get("C", 0) // 2 * 125
+        aa_dict.get("Y", 0) * 1490
+        + aa_dict.get("W", 0) * 5500
+        + aa_dict.get("C", 0) // 2 * 125
     )
     ext_coef_reduced = (
-        my_sequence_dict.get("Y", 0) * 1490 + my_sequence_dict.get("W", 0) * 5500
+        aa_dict.get("Y", 0) * 1490 + aa_dict.get("W", 0) * 5500
     )
     abs_cformed = ext_coef_cformed / mol_weight
     abs_reduced = ext_coef_reduced / mol_weight
+    
+    ext_coef_dict = dict((("ext_coef_cformed", ext_coef_cformed), 
+                         ("ext_coef_reduced", ext_coef_reduced), 
+                         ("abs_cformed", abs_cformed),
+                         ("abs_reduced", abs_reduced)
+                         ))
+    
+    return ext_coef_dict
 
-    result_text.insert("end", f"\nExt. coefficient (M-1 cm-1): {ext_coef_cformed}\n")
-    result_text.insert(
-        "end",
-        f"Abs (0.1%): {abs_cformed:.3f}, assuming all pairs of Cys residues form cystines\n",
-    )
-
-    result_text.insert("end", f"\nExt. coefficient (M-1 cm-1): {ext_coef_reduced}\n")
-    result_text.insert(
-        "end", f"Abs (0.1%): {abs_reduced:.3f}, assuming all Cys residues are reduced\n"
-    )
-
-
-def calculate_pI(my_sequence_dict, sequence_list):
+def calculate_pI(aa_dict, sequence_list):
     """Protein isoelectric point definition using Henderson-Hasselbach equation
     http://isoelectric.org/www_old/files/isoelectric-point-theory.html
 
@@ -189,26 +219,26 @@ def calculate_pI(my_sequence_dict, sequence_list):
     # Calculations using bisection
     while True:
         ch_cter = -1 / (1 + pow(10, (pKa_cter - ph)))
-        ch_d = -my_sequence_dict.get("D", 0) / (
+        ch_d = -aa_dict.get("D", 0) / (
             1 + pow(10, (amino_acids_dict["D"][7] - ph))
         )
-        ch_e = -my_sequence_dict.get("E", 0) / (
+        ch_e = -aa_dict.get("E", 0) / (
             1 + pow(10, (amino_acids_dict["E"][7] - ph))
         )
-        ch_c = -my_sequence_dict.get("C", 0) / (
+        ch_c = -aa_dict.get("C", 0) / (
             1 + pow(10, (amino_acids_dict["C"][7] - ph))
         )
-        ch_y = -my_sequence_dict.get("Y", 0) / (
+        ch_y = -aa_dict.get("Y", 0) / (
             1 + pow(10, (amino_acids_dict["Y"][7] - ph))
         )
         ch_nter = 1 / (1 + pow(10, (ph - pKa_nter)))
-        ch_h = my_sequence_dict.get("H", 0) / (
+        ch_h = aa_dict.get("H", 0) / (
             1 + pow(10, (ph - amino_acids_dict["H"][7]))
         )
-        ch_k = my_sequence_dict.get("K", 0) / (
+        ch_k = aa_dict.get("K", 0) / (
             1 + pow(10, (ph - amino_acids_dict["K"][7]))
         )
-        ch_r = my_sequence_dict.get("R", 0) / (
+        ch_r = aa_dict.get("R", 0) / (
             1 + pow(10, (ph - amino_acids_dict["R"][7]))
         )
         net_charge = ch_cter + ch_d + ch_e + ch_c + ch_y + ch_nter + ch_h + ch_k + ch_r
@@ -222,22 +252,29 @@ def calculate_pI(my_sequence_dict, sequence_list):
             ph_prev = temp_ph
         else:
             break
+        
+    return ph
 
-    result_text.insert("end", f"\nTheoretical pI: {ph:.2f}\n\n")
 
-
-def start_calculation():  # Start    
+def start_calculation():  # Start 
+    # Tk functions
     result_text.delete("1.0", "end")  # Cleaning the result window
-    result_window.deiconify()  
-    my_sequence = prot_seq_text.get("1.0", "end")
-    sequence_list = make_sequence(my_sequence)
-    my_sequence_dict = count_aa(sequence_list)
-    count_aa_atoms(my_sequence_dict)
-    mol_weight = calculate_mol_weight(my_sequence_dict)
-    calculate_ext_coef(my_sequence_dict, mol_weight)
-    calculate_pI(my_sequence_dict, sequence_list)
+    result_window.deiconify()
     btn_save.config(state="normal", cursor="hand2")  # Activating the Save as.. button
     input_on_left_click_back()
+       
+    # Calculation functions
+    protein = Protein()  
+    sequence = prot_seq_text.get("1.0", "end")
+    protein.sequence = make_sequence(sequence)
+    protein.aa_number = len(protein.sequence)
+    protein.aa_dict = count_aa(protein.sequence)
+    protein.atom_dict = count_atoms(protein.aa_dict)
+    protein.mol_weight = calculate_mol_weight(protein.aa_dict)
+    protein.ext_coef = calculate_ext_coef(protein.aa_dict, protein.mol_weight)
+    protein.pI = calculate_pI(protein.aa_dict, protein.sequence)
+    protein.print_info()
+    
 
 def input_on_left_click(event):  # Preparing the sequence window for the new data
     global prot_seq_text_click_flag
@@ -271,8 +308,7 @@ def copy_paste(e):  # Fixing the hotkeys copy-paste problem when you use RU keyb
     elif e.keycode == 67 and e.keysym != 'c':
         e.widget.event_generate('<<Copy>>')
     elif e.keycode == 88 and e.keysym != 'x':
-        e.widget.event_generate('<<Cut>>')
-        
+        e.widget.event_generate('<<Cut>>')        
         
 root = Tk()
 root.geometry("600x400+800+300")  # Main window
