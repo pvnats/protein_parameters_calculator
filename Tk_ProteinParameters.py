@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import filedialog
+from decimal import *
 
 """
 Protein parameters calculation by pvnats
@@ -11,104 +12,97 @@ extinction coefficients and theoretical pI from a protein sequence
 # Amino acids dictionary
 # One letter : [3 letters, Mw, C, H, N, O, S, pKa]
 amino_acids_dict = {
-    "A": ["Ala", 89.09404, 3, 5, 1, 1, 0],
-    "C": ["Cys", 121.15404, 3, 5, 1, 1, 1, 9],
-    "D": ["Asp", 133.10384, 4, 5, 1, 3, 0, 4.05],
-    "E": ["Glu", 147.13074, 5, 7, 1, 3, 0, 4.45],
-    "F": ["Phe", 165.19184, 9, 9, 1, 1, 0],
-    "G": ["Gly", 75.06714, 2, 3, 1, 1, 0],
-    "H": ["His", 155.15634, 6, 7, 3, 1, 0, 5.98],
-    "I": ["Ile", 131.17464, 6, 11, 1, 1, 0],
-    "K": ["Lys", 146.18934, 6, 12, 2, 1, 0, 10],
-    "L": ["Leu", 131.17464, 6, 11, 1, 1, 0],
-    "M": ["Met", 149.20784, 5, 9, 1, 1, 1],
-    "N": ["Asn", 132.11904, 4, 6, 2, 2, 0],
-    "P": ["Pro", 115.13194, 5, 7, 1, 1, 0],
-    "Q": ["Gln", 146.14594, 5, 8, 2, 2, 0],
-    "R": ["Arg", 174.20274, 6, 12, 4, 1, 0, 12],
-    "S": ["Ser", 105.09344, 3, 5, 1, 2, 0],
-    "T": ["Thr", 119.12034, 4, 7, 1, 2, 0],
-    "V": ["Val", 117.14784, 5, 9, 1, 1, 0],
-    "W": ["Trp", 204.22844, 11, 10, 2, 1, 0],
-    "Y": ["Tyr", 181.19124, 9, 9, 1, 2, 0, 10],
+    "A": ["Ala", '89.09404', 3, 5, 1, 1, 0],
+    "C": ["Cys", '121.15404', 3, 5, 1, 1, 1, Decimal('9')],
+    "D": ["Asp", '133.10384', 4, 5, 1, 3, 0, Decimal('4.05')],
+    "E": ["Glu", '147.13074', 5, 7, 1, 3, 0, Decimal('4.45')],
+    "F": ["Phe", '165.19184', 9, 9, 1, 1, 0],
+    "G": ["Gly", '75.06714', 2, 3, 1, 1, 0],
+    "H": ["His", '155.15634', 6, 7, 3, 1, 0, Decimal('5.98')],
+    "I": ["Ile", '131.17464', 6, 11, 1, 1, 0],
+    "K": ["Lys", '146.18934', 6, 12, 2, 1, 0, Decimal('10')],
+    "L": ["Leu", '131.17464', 6, 11, 1, 1, 0],
+    "M": ["Met", '149.20784', 5, 9, 1, 1, 1],
+    "N": ["Asn", '132.11904', 4, 6, 2, 2, 0],
+    "P": ["Pro", '115.13194', 5, 7, 1, 1, 0],
+    "Q": ["Gln", '146.14594', 5, 8, 2, 2, 0],
+    "R": ["Arg", '174.20274', 6, 12, 4, 1, 0, Decimal('12')],
+    "S": ["Ser", '105.09344', 3, 5, 1, 2, 0],
+    "T": ["Thr", '119.12034', 4, 7, 1, 2, 0],
+    "V": ["Val", '117.14784', 5, 9, 1, 1, 0],
+    "W": ["Trp", '204.22844', 11, 10, 2, 1, 0],
+    "Y": ["Tyr", '181.19124', 9, 9, 1, 2, 0, Decimal('10')],
 }
 
 
 class Protein:
     def __init__(self):
-        self.sequence = None
+        self.sequence = list()
         self.aa_number = None
-        self.aa_dict = None
-        self.atom_dict = None
-        self.mol_weight = None
+        self.aa_dict = dict()
+        self.atom_dict = dict()
+        self.mol_weight = 0
         self.ext_coef = None
         self.pI = None
+        self.result_string = ""
         
-    def print_info(self):
-        """Prints all calculated parameters in the result window"""
+    def get_report(self):
+        """Makes the result string which contains all calculated parameters for the result window and return it"""
         
-        # Prints the chunked sequence
-        result_text.insert("end", f"Your sequence:\n")
+        # Makes the chunked sequence string
+        self.result_string += f"Your sequence:\n"
         chunked_list = [self.sequence[i:i + 10] for i in range(0, len(self.sequence), 10)]
         counter = 0
         
         for i in range(0, len(chunked_list), 5):  
             for chunk in chunked_list[i:i + 5]:
                 counter += len(chunk)
-                result_text.insert("end", f"{''.join(chunk)} ")
-            result_text.insert("end", f' {counter}\n')
+                self.result_string += f"{''.join(chunk)} "
+            self.result_string += f' {counter}\n'
             
-        # Prints the amino acid composition
-        result_text.insert("end", f"\nAmino acid composition: \n")
+        # Makes the amino acid composition string
+        self.result_string += f"\nAmino acid composition: \n"
         for key, value in sorted(self.aa_dict.items()):
-                result_text.insert(
-                    "end",
+                self.result_string += (
                     f"{amino_acids_dict[key][0]} ({key}) = {value}\t"
-                    f"\t{100 * value / self.aa_number:.1f}% \n",
-                )
-        result_text.insert("end", f"\nNumber of amino acids: {self.aa_number}\n")
+                    f"\t{100 * value / self.aa_number:.1f}% \n"
+                    )
+        self.result_string += f"\nNumber of amino acids: {self.aa_number}\n"
         
-        # Prints the atomic composition
-        result_text.insert("end", f"\nAtomic composition:")
-        result_text.insert(
-            "end",
+        # Makes the atomic composition string
+        self.result_string += f"\nAtomic composition:"
+        self.result_string += (
             f"\nCarbon  \tC\t{self.atom_dict['C']}"
             f"\nHydrogen\tH\t{self.atom_dict['H'] + 2}"
             f"\nNitrogen\tN\t{self.atom_dict['N']}"
             f"\nOxygen  \tO\t{self.atom_dict['O'] + 1}"
-            f"\nSulfur  \tS\t{self.atom_dict['S']}\n",
+            f"\nSulfur  \tS\t{self.atom_dict['S']}\n"
             )
         
-        result_text.insert(
-            "end", f"\nFormula: C{self.atom_dict['C']}H{self.atom_dict['H'] + 2}N{self.atom_dict['N']}O{self.atom_dict['O'] + 1}S{self.atom_dict['S']}\n"
+        self.result_string += (
+            f"\nFormula: C{self.atom_dict['C']}"
+            f"H{self.atom_dict['H'] + 2}"
+            f"N{self.atom_dict['N']}"
+            f"O{self.atom_dict['O'] + 1}"
+            f"S{self.atom_dict['S']}\n"
             )
-        result_text.insert(
-             "end",
-            f"Total number of atoms: {self.atom_dict['C'] + self.atom_dict['H'] + self.atom_dict['N'] + self.atom_dict['O'] + self.atom_dict['S'] + 3}\n",
-            )
+        self.result_string += f"Total number of atoms: {self.atom_dict['C'] + self.atom_dict['H'] + self.atom_dict['N'] + self.atom_dict['O'] + self.atom_dict['S'] + 3}\n"
         
-        # Prints the molecular weight
-        result_text.insert("end", f"\nMolecular weight: {self.mol_weight:.2f}\n")
+        # Makes the molecular weight string
+        self.result_string += f"\nMolecular weight: {self.mol_weight:.2f}\n"
         
-        # Prints the extinction coefficients
-        result_text.insert(
-            "end", 
-            f"\nExt. coefficient (M-1 cm-1): {self.ext_coef['ext_coef_cformed']}\n")
-        result_text.insert(
-            "end",
-            f"Abs (0.1%): {self.ext_coef['abs_cformed']:.3f}, assuming all pairs of Cys residues form cystines\n",
-            )
-        result_text.insert(
-            "end", 
+        # Makes the extinction coefficients string
+        self.result_string += (
+            f"\nExt. coefficient (M-1 cm-1): {self.ext_coef['ext_coef_cformed']}\n"
+            f"Abs (0.1%): {self.ext_coef['abs_cformed']:.3f}, assuming all pairs of Cys residues form cystines\n"
             f"\nExt. coefficient (M-1 cm-1): {self.ext_coef['ext_coef_reduced']}\n"
-            )
-        result_text.insert(
-            "end", 
             f"Abs (0.1%): {self.ext_coef['abs_reduced']:.3f}, assuming all Cys residues are reduced\n"
             )
         
-        # Print pI
-        result_text.insert("end", f"\nTheoretical pI: {self.pI:.2f}\n\n") 
+        # Makes pI string
+        self.result_string += f"\nTheoretical pI: {self.pI:.2f}\n\n" 
+
+        return self.result_string
         
     def make_sequence(self, sequence):  
         """
@@ -116,49 +110,37 @@ class Protein:
         calculates the total number of amino acids
         """
         
-        sequence_list = []
         for s in sequence:
-            if s.upper() in amino_acids_dict.keys():
-                sequence_list.append(s.upper())
+            if s.upper() in amino_acids_dict:
+                self.sequence.append(s.upper())
         
-        self.sequence = sequence_list
-        self.aa_number = len(sequence_list)
+        self.aa_number = len(self.sequence)
 
     def count_aa(self):  
         """Counts amino acids"""
         
-        temp_aa_dict = {}
         for aa in self.sequence:
-            temp_aa_dict[aa] = temp_aa_dict.get(aa, 0) + 1
-
-        self.aa_dict = temp_aa_dict
-
+            self.aa_dict[aa] = self.aa_dict.get(aa, 0) + 1
+        
     def count_atoms(self):  
         """Calculates the atomic composition"""
         
-        atom_c, atom_h, atom_n, atom_o, atom_s = 0, 0, 0, 0, 0
-
         for key, value in self.aa_dict.items():
-            atom_c += amino_acids_dict[key][2] * value
-            atom_h += amino_acids_dict[key][3] * value
-            atom_n += amino_acids_dict[key][4] * value
-            atom_o += amino_acids_dict[key][5] * value
-            atom_s += amino_acids_dict[key][6] * value
-        
-        self.atom_dict = {"C": atom_c, "H": atom_h, "N": atom_n, "O": atom_o, "S": atom_s}
-    
+            self.atom_dict["C"] = self.atom_dict.get("C", 0) + amino_acids_dict[key][2] * value
+            self.atom_dict["H"] = self.atom_dict.get("H", 0) + amino_acids_dict[key][3] * value
+            self.atom_dict["N"] = self.atom_dict.get("N", 0) + amino_acids_dict[key][4] * value
+            self.atom_dict["O"] = self.atom_dict.get("O", 0) + amino_acids_dict[key][5] * value
+            self.atom_dict["S"] = self.atom_dict.get("S", 0) + amino_acids_dict[key][6] * value
+  
     def calculate_mol_weight(self):  
         """Calculates the molecular weight"""
         
-        water_weight = 18.0153
-        mol_weight = 0
-
+        water_weight = Decimal('18.0153')
+        
         for key, value in self.aa_dict.items():
-            mol_weight += (amino_acids_dict[key][1] - water_weight) * value
-        mol_weight += water_weight
-    
-        self.mol_weight = mol_weight    
-
+            self.mol_weight += (Decimal(amino_acids_dict[key][1]) - water_weight) * value
+        self.mol_weight += water_weight
+            
     def calculate_ext_coef(self):  
         """Calculates extinction coefficients"""
         
@@ -200,36 +182,36 @@ class Protein:
         http://isoelectric.org/www_old/files/practise-isoelectric-point.html"""
 
         nter_dict = {
-            "Nter": 7.5,
-            "A": 7.59,
-            "M": 7.00,
-            "S": 6.93,
-            "P": 8.36,
-            "T": 6.82,
-            "V": 7.44,
-            "E": 7.70,
+            "Nter": '7.5',
+            "A": '7.59',
+            "M": '7.00',
+            "S": '6.93',
+            "P": '8.36',
+            "T": '6.82',
+            "V": '7.44',
+            "E": '7.70',
         }  # N-ter pKa
-        cter_dict = {"Cter": 3.55, "D": 4.55, "E": 4.75}  # C-Ter pKa
+        cter_dict = {"Cter": '3.55', "D": '4.55', "E": '4.75'}  # C-Ter pKa
 
         # N-terminal pKa of N-ter AA of my_sequence
         if self.sequence[0] in nter_dict.keys():
-            pKa_nter = nter_dict[self.sequence[0]]
+            pKa_nter = Decimal(nter_dict[self.sequence[0]])
         else:
-            pKa_nter = nter_dict["Nter"]
+            pKa_nter = Decimal(nter_dict["Nter"])
 
         # C-terminal pKa of C-ter AA of my_sequence
         if self.sequence[-1] in cter_dict.keys():
-            pKa_cter = cter_dict[self.sequence[-1]]
+            pKa_cter = Decimal(cter_dict[self.sequence[-1]])
         else:
-            pKa_cter = cter_dict["Cter"]
+            pKa_cter = Decimal(cter_dict["Cter"])
 
-        ph = 6.50  # starting point pI = 6.5
-        net_charge = 0.0  # net charge in given pH
+        ph = Decimal('6.50')  # starting point pI = 6.5
+        net_charge = Decimal('0.0')  # net charge in given pH
 
-        ph_prev = 0.0  # 0-14 is possible pH range
-        ph_next = 14.0
-        temp_ph = 0.0
-        EPSILON = 0.01  # defined precision
+        ph_prev = Decimal('0.0')  # 0-14 is possible pH range
+        ph_next = Decimal('14.0')
+        temp_ph = Decimal('0.0')
+        EPSILON = Decimal('0.01')  # defined precision
 
         # Calculations using bisection
         while True:
@@ -277,34 +259,46 @@ class Protein:
         self.calculate_mol_weight()
         self.calculate_ext_coef()
         self.calculate_pI()
-        self.print_info()
-
+                        
 
 def start_calculation():  
     """Starts calculations (Press the 'Calculate' button)""" 
-    
-    result_text.delete("1.0", "end")  # Cleaning the result window
+
+    # Cleaning the result window
+    result_text.delete("1.0", "end") 
+
     result_window.deiconify()
-    btn_save.config(state="normal", cursor="hand2")  # Activating the Save as.. button
+
+    # Activating the Save as.. button
+    btn_save.config(state="normal", cursor="hand2")  
     input_on_left_click_back()
-       
-    Protein().calculate(prot_seq_text.get("1.0", "end")) # Initialize Protein and get sequence from input
-    
+
+    # Initializes Protein and get sequence from input
+    protein = Protein()   
+    protein.calculate(prot_seq_text.get("1.0", "end")) 
+    # Displays the result data 
+    result_text.insert("end", f"{protein.get_report()}")  
 
 def input_on_left_click(event):  
     """ Prepares the sequence window for the new data"""
     
     global prot_seq_text_click_flag
     if prot_seq_text_click_flag == False:
-        prot_seq_text.delete("1.0", "end")  # Cleaning the sequence window 
-        prot_seq_text.config(fg="black")  # Changing the font color
-        prot_seq_text_click_flag = True  # Stop the window mouse click event
+        # Cleans the sequence window
+        prot_seq_text.delete("1.0", "end")
+        # Changes the font color   
+        prot_seq_text.config(fg="black")
+        # Stops the window mouse click event  
+        prot_seq_text_click_flag = True  
         
 def input_on_left_click_back():  
     """Returns the initial prot_seq_text window settings"""
     
     global prot_seq_text_click_flag
-    prot_seq_text_click_flag = False  # Start the window mouse click event
+
+    # Start the window mouse click event
+    prot_seq_text_click_flag = False 
+    # Changes the font color 
     prot_seq_text.config(fg="grey")
     
 def save_file():
