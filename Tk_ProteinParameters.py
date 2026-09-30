@@ -1,6 +1,7 @@
+from decimal import *
 from tkinter import *
 from tkinter import filedialog
-from decimal import *
+from tkinter import messagebox
 
 """
 Protein parameters calculation by pvnats
@@ -110,9 +111,11 @@ class Protein:
         calculates the total number of amino acids
         """
         
-        for s in sequence:
+        for s in sequence.strip():
             if s.upper() in amino_acids_dict:
                 self.sequence.append(s.upper())
+            else:
+                raise ValueError(f'{s}')
         
         self.aa_number = len(self.sequence)
 
@@ -271,16 +274,23 @@ def start_calculation():
 
     # Activating the Save as.. button
     btn_save.config(state="normal", cursor="hand2")  
-    input_on_left_click_back()
+    
 
-    # Initializes Protein and get sequence from input
-    protein = Protein()   
-    protein.calculate(prot_seq_text.get("1.0", "end")) 
-    # Displays the result data 
-    result_text.insert("end", f"{protein.get_report()}")  
+    # Initializes Protein 
+    protein = Protein()
+    try:
+        # Gets the sequence from input
+        protein.calculate(prot_seq_text.get("1.0", "end"))
+        # Displays the result data 
+        result_text.insert("end", f"{protein.get_report()}")
+        input_on_left_click_back()
+    except ValueError as err:
+        raise_warning_message(err.args[0])
+
+      
 
 def input_on_left_click(event):  
-    """ Prepares the sequence window for the new data"""
+    """Prepares the sequence window for the new data"""
     
     global prot_seq_text_click_flag
     if prot_seq_text_click_flag == False:
@@ -290,7 +300,14 @@ def input_on_left_click(event):
         prot_seq_text.config(fg="black")
         # Stops the window mouse click event  
         prot_seq_text_click_flag = True  
-        
+
+def raise_warning_message(err_arg):
+    """Raises the message box with the wrong inputed symbol"""
+    messagebox.showwarning(
+        title='Please check your sequence!',
+        message=f'Your sequence contains the wrong symbol - "{err_arg}".'
+        )
+
 def input_on_left_click_back():  
     """Returns the initial prot_seq_text window settings"""
     
