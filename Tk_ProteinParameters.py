@@ -104,7 +104,14 @@ class Protein:
         self.result_string += f"\nTheoretical pI: {self.pI:.2f}\n\n" 
 
         return self.result_string
+    
+    @staticmethod
+    def check_input(symbol):
+        """Checks the inputed sequence symbols"""
         
+        if symbol not in amino_acids_dict:
+            raise ValueError(f'{symbol}')
+            
     def make_sequence(self, sequence):  
         """
         Makes the sequence list of the analyzing protein and 
@@ -112,10 +119,8 @@ class Protein:
         """
         
         for s in sequence.strip():
-            if s.upper() in amino_acids_dict:
-                self.sequence.append(s.upper())
-            else:
-                raise ValueError(f'{s}')
+            self.check_input(s.upper())
+            self.sequence.append(s.upper())
         
         self.aa_number = len(self.sequence)
 
