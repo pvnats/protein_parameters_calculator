@@ -10,9 +10,21 @@ class TestCalculations(unittest.TestCase):
     def setUpClass(self):
         self.protein = Protein()
         self.protein.calculate(self.test_sequence)
+
+    def test_check_input_sym(self):
+        wrong_symbols = ['1', 'O', 'a', ' ', '_', '']
+
+        for sym in wrong_symbols:
+            self.assertRaises(ValueError, self.protein.check_input, sym)
+
+    def test_check_input_seq(self):
+        empty_str = ['', '\n']
+
+        for s in empty_str:
+            self.assertRaises(ValueError, self.protein.check_sequence, s)
         
     def test_make_sequence(self):
-        expected_sequence =['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V', 'A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
+        expected_sequence =[i for i in self.test_sequence]
         self.assertListEqual(expected_sequence, self.protein.sequence, 'The sequence is wrong')
         
     def test_count_aa(self):

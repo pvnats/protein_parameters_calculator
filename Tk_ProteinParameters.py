@@ -13,26 +13,26 @@ extinction coefficients and theoretical pI from a protein sequence
 # Amino acids dictionary
 # One letter : [3 letters, Mw, C, H, N, O, S, pKa]
 amino_acids_dict = {
-    "A": ["Ala", '89.09404', 3, 5, 1, 1, 0],
-    "C": ["Cys", '121.15404', 3, 5, 1, 1, 1, Decimal('9')],
-    "D": ["Asp", '133.10384', 4, 5, 1, 3, 0, Decimal('4.05')],
-    "E": ["Glu", '147.13074', 5, 7, 1, 3, 0, Decimal('4.45')],
-    "F": ["Phe", '165.19184', 9, 9, 1, 1, 0],
-    "G": ["Gly", '75.06714', 2, 3, 1, 1, 0],
-    "H": ["His", '155.15634', 6, 7, 3, 1, 0, Decimal('5.98')],
-    "I": ["Ile", '131.17464', 6, 11, 1, 1, 0],
-    "K": ["Lys", '146.18934', 6, 12, 2, 1, 0, Decimal('10')],
-    "L": ["Leu", '131.17464', 6, 11, 1, 1, 0],
-    "M": ["Met", '149.20784', 5, 9, 1, 1, 1],
-    "N": ["Asn", '132.11904', 4, 6, 2, 2, 0],
-    "P": ["Pro", '115.13194', 5, 7, 1, 1, 0],
-    "Q": ["Gln", '146.14594', 5, 8, 2, 2, 0],
-    "R": ["Arg", '174.20274', 6, 12, 4, 1, 0, Decimal('12')],
-    "S": ["Ser", '105.09344', 3, 5, 1, 2, 0],
-    "T": ["Thr", '119.12034', 4, 7, 1, 2, 0],
-    "V": ["Val", '117.14784', 5, 9, 1, 1, 0],
-    "W": ["Trp", '204.22844', 11, 10, 2, 1, 0],
-    "Y": ["Tyr", '181.19124', 9, 9, 1, 2, 0, Decimal('10')],
+    "A": ["Ala", Decimal('89.09404'), 3, 5, 1, 1, 0],
+    "C": ["Cys", Decimal('121.15404'), 3, 5, 1, 1, 1, Decimal('9')],
+    "D": ["Asp", Decimal('133.10384'), 4, 5, 1, 3, 0, Decimal('4.05')],
+    "E": ["Glu", Decimal('147.13074'), 5, 7, 1, 3, 0, Decimal('4.45')],
+    "F": ["Phe", Decimal('165.19184'), 9, 9, 1, 1, 0],
+    "G": ["Gly", Decimal('75.06714'), 2, 3, 1, 1, 0],
+    "H": ["His", Decimal('155.15634'), 6, 7, 3, 1, 0, Decimal('5.98')],
+    "I": ["Ile", Decimal('131.17464'), 6, 11, 1, 1, 0],
+    "K": ["Lys", Decimal('146.18934'), 6, 12, 2, 1, 0, Decimal('10')],
+    "L": ["Leu", Decimal('131.17464'), 6, 11, 1, 1, 0],
+    "M": ["Met", Decimal('149.20784'), 5, 9, 1, 1, 1],
+    "N": ["Asn", Decimal('132.11904'), 4, 6, 2, 2, 0],
+    "P": ["Pro", Decimal('115.13194'), 5, 7, 1, 1, 0],
+    "Q": ["Gln", Decimal('146.14594'), 5, 8, 2, 2, 0],
+    "R": ["Arg", Decimal('174.20274'), 6, 12, 4, 1, 0, Decimal('12')],
+    "S": ["Ser", Decimal('105.09344'), 3, 5, 1, 2, 0],
+    "T": ["Thr", Decimal('119.12034'), 4, 7, 1, 2, 0],
+    "V": ["Val", Decimal('117.14784'), 5, 9, 1, 1, 0],
+    "W": ["Trp", Decimal('204.22844'), 11, 10, 2, 1, 0],
+    "Y": ["Tyr", Decimal('181.19124'), 9, 9, 1, 2, 0, Decimal('10')],
 }
 
 
@@ -47,11 +47,11 @@ class Protein:
         self.pI = None
         self.result_string = ""
         
-    def get_report(self):
-        """Makes the result string which contains all calculated parameters for the result window and return it"""
+    def make_report(self):
+        """Makes the result string which contains all calculated parameters for the result window"""
         
         # Makes the chunked sequence string
-        self.result_string += f"Your sequence:\n"
+        self.result_string = f"Your sequence:\n"
         chunked_list = [self.sequence[i:i + 10] for i in range(0, len(self.sequence), 10)]
         counter = 0
         
@@ -102,6 +102,9 @@ class Protein:
         
         # Makes pI string
         self.result_string += f"\nTheoretical pI: {self.pI:.2f}\n\n" 
+       
+    def get_report(self):
+        """Returns the result string"""
 
         return self.result_string
     
@@ -109,18 +112,29 @@ class Protein:
     def check_input(symbol):
         """Checks the inputed sequence symbols"""
         
-        if symbol not in amino_acids_dict:
-            raise ValueError(f'{symbol}')
+        if symbol.upper() not in amino_acids_dict:
+            raise ValueError(f'Your sequence contains the wrong symbol - {symbol}')
+        elif symbol.islower():
+            raise ValueError(f'The letter - {symbol} is in lowercase!')
+
+    @staticmethod
+    def check_sequence(sequence):
+        """Checks the inputed sequence"""
+
+        if sequence == '' or sequence =='\n':
+            raise ValueError('Your sequence is empty!')
             
     def make_sequence(self, sequence):  
         """
         Makes the sequence list of the analyzing protein and 
         calculates the total number of amino acids
         """
+
+        self.check_sequence(sequence)
         
         for s in sequence.strip():
-            self.check_input(s.upper())
-            self.sequence.append(s.upper())
+            self.check_input(s)
+            self.sequence.append(s)
         
         self.aa_number = len(self.sequence)
 
@@ -144,10 +158,13 @@ class Protein:
         """Calculates the molecular weight"""
         
         water_weight = Decimal('18.0153')
-        
+        temp_weight = 0
+
         for key, value in self.aa_dict.items():
-            self.mol_weight += (Decimal(amino_acids_dict[key][1]) - water_weight) * value
-        self.mol_weight += water_weight
+            temp_weight += (amino_acids_dict[key][1] - water_weight) * value
+        temp_weight += water_weight
+
+        self.mol_weight = temp_weight
             
     def calculate_ext_coef(self):  
         """Calculates extinction coefficients"""
@@ -261,12 +278,14 @@ class Protein:
         self.pI = ph
     
     def calculate(self, sequence):
+        print(f'<{sequence}>')
         self.make_sequence(sequence)
         self.count_aa()
         self.count_atoms()
         self.calculate_mol_weight()
         self.calculate_ext_coef()
         self.calculate_pI()
+        self.make_report()
                         
 
 def start_calculation():  
@@ -287,7 +306,7 @@ def start_calculation():
         # Gets the sequence from input
         protein.calculate(prot_seq_text.get("1.0", "end"))
         # Displays the result data 
-        result_text.insert("end", f"{protein.get_report()}")
+        result_text.insert("end", protein.get_report())
         input_on_left_click_back()
     except ValueError as err:
         raise_warning_message(err.args[0])
@@ -310,7 +329,7 @@ def raise_warning_message(err_arg):
     """Raises the message box with the wrong inputed symbol"""
     messagebox.showwarning(
         title='Please check your sequence!',
-        message=f'Your sequence contains the wrong symbol - "{err_arg}".'
+        message=f'{err_arg}'
         )
 
 def input_on_left_click_back():  
@@ -399,7 +418,8 @@ frame_bottom.pack()
 prot_seq_text = Text(frame_bottom, wrap="char", width=72, height=17, fg="grey")
 prot_seq_text.place(x=10, y=10)
 prot_seq_text.insert(
-    "1.0", " Your protein sequence: (Example: SKYAVK...)"
+    "1.0", " Enter one protein sequence in uppercase single letter code: \n"
+    " (Example: ARNDCQEGHILKMFPSTWYV)"
 )
 # prot_seq_text_click_flag become 'False' before first seq input and after every job
 # to control input_on_left_click event and let to edit your seq before calculations
